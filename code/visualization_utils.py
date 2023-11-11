@@ -67,7 +67,9 @@ def query_redirecting(input :str,llm: ChatOpenAI,filenum: str):
             dalex_folder_2=parent_dir + "/data/total_prediction_results/"+folder_name+"/fairness_measures/result_of_function_fairness_check_using_dalex.txt"
             dalex_folder_3=parent_dir + "/data/total_prediction_results/"+folder_name+"/fairness_measures/group_fairness_regression_result_using_dalex.txt"
         if(st.session_state['fairlearn_select'] == '1'):
-            fairlearn_folder=parent_dir + "/data/total_prediction_results/"+folder_name+"/fairness_measures/fairlearn_doc.txt"
+            fairlearn_folder_1=parent_dir + "/data/total_prediction_results/"+folder_name+"/fairness_measures/Fairlearn_results_1.csv"
+            fairlearn_folder_2=parent_dir + "/data/total_prediction_results/"+folder_name+"/fairness_measures/Fairlearn_results_2.csv"
+       
 
     elif(filenum=='2'):
         original_file="Datensatz 2.csv"
@@ -80,7 +82,9 @@ def query_redirecting(input :str,llm: ChatOpenAI,filenum: str):
             dalex_folder_2=parent_dir + "/data/total_prediction_results/"+folder_name+"/fairness_measures/result_of_function_fairness_check_using_dalex.txt"
             dalex_folder_3=parent_dir + "/data/total_prediction_results/"+folder_name+"/fairness_measures/group_fairness_regression_result_using_dalex.txt"
         if(st.session_state['fairlearn_select'] == '1'):
-            fairlearn_folder=parent_dir + "/data/total_prediction_results/"+folder_name+"/fairness_measures/fairlearn_doc.txt"
+            fairlearn_folder_1=parent_dir + "/data/total_prediction_results/"+folder_name+"/fairness_measures/Fairlearn_results_1.csv"
+            fairlearn_folder_2=parent_dir + "/data/total_prediction_results/"+folder_name+"/fairness_measures/Fairlearn_results_2.csv"
+       
 
     else:
         original_file="Datensatz 3.csv"
@@ -93,7 +97,8 @@ def query_redirecting(input :str,llm: ChatOpenAI,filenum: str):
             dalex_folder_2=parent_dir + "/data/total_prediction_results/"+folder_name+"/fairness_measures/result_of_function_fairness_check_using_dalex.txt"
             dalex_folder_3=parent_dir + "/data/total_prediction_results/"+folder_name+"/fairness_measures/group_fairness_regression_result_using_dalex.txt"  
         if(st.session_state['fairlearn_select'] == '1'):
-            fairlearn_folder=parent_dir + "/data/total_prediction_results/"+folder_name+"/fairness_measures/fairlearn_doc.txt"
+            fairlearn_folder_1=parent_dir + "/data/total_prediction_results/"+folder_name+"/fairness_measures/Fairlearn_results_1.csv"
+            fairlearn_folder_2=parent_dir + "/data/total_prediction_results/"+folder_name+"/fairness_measures/Fairlearn_results_2.csv"
        
 
     class PredictedDatabaseTool(BaseTool):
@@ -128,15 +133,17 @@ def query_redirecting(input :str,llm: ChatOpenAI,filenum: str):
       
     class FairlearnFairnessTool(BaseTool):
         name = "Fairlearn Fairness QA"
-        description = "use this tool to answer questions on the given context based on the concept of fairness library Fairlearn(search the internet and understand its fairness metrices in detail) and explain the given context accordingly to a layman. The context here is for male and female subgroups."
+        description = "use this tool to answer questions on the given context based on the concept of fairness library Fairlearn(search the internet and understand its fairness metrices in detail) and explain the given context accordingly to a layman. Also explain Demographic Parity Ratio and Equalized Odds ratio of Fairlearn fairness library in very easy way to a layman at first, as these are the metrics being used to calculate the fairness for the context.The interpretation of the values depend on the definitions as follows. Demographic Parity: It measures the ML model's ability to make prediction such that they are independent of the influence by sensitive groups. Equalized odds: It also ensures that ML model's predictions are independent of sensitive groups. It's more strict than Demographic parity by ensuring all groups in the dataset have same true positive rates and false positive rates. Equal Opportunity: It's similar to equalized odds but applies only to positive instances, i.e. Y=1. Demographic parity ratio: Ratio of selection rates between smallest and largest groups. Return type is a decimal value. A ratio of 1 means all groups have same selection rate. Equalized odds ratio: The equalized odds ratio of 1 means that all groups have the same true positive, true negative, false positive, and false negative rates."
 
         def _run(self,query: str):
             print("entered")
-            df=pd.read_csv(fairlearn_folder)
 
-            pd_agent=create_csv_agent(llm,df,verbose=True)
+            df_1=pd.read_csv(fairlearn_folder_1)
+            df_2=pd.read_csv(fairlearn_folder_2)
 
-            return pd_agent.run(query)
+            pd_agent=create_pandas_dataframe_agent(llm,[df_1,df_2],verbose=True)
+
+            return pd_agent.run(query+"use tool")
 
         def _arun(self):
             raise NotImplementedError("This tool does not support async")
@@ -151,7 +158,7 @@ def query_redirecting(input :str,llm: ChatOpenAI,filenum: str):
             df_2=pd.read_csv(dalex_folder_2)
             df_3=pd.read_csv(dalex_folder_3)
 
-            pd_agent=create_csv_agent(llm, df_1,df_2,df_3, verbose=True)
+            pd_agent=create_pandas_dataframe_agent(llm, [df_1,df_2,df_3,], verbose=True)
 
             return pd_agent.run(query)
 
@@ -190,7 +197,7 @@ def query_refiner(conversation, query):
         temperature=0.7,
         max_tokens=100,
         n=1,
-        messages=[{"role": "system", "content":f"Given the following user query and conversation log, formulate a question that would be the most relevant to provide the user with an answer from a knowledge base.\n\nCONVERSATION LOG: \n{conversation}\n\nQuery: {query}\n\nRefined Query:"}]
+        messages=[{"role": "system", "content":f"Given the following user query and conversation log, formulate a question that would be the most relevant to provide the user with an answer from a knowledge base.Use tools first.\n\nCONVERSATION LOG: \n{conversation}\n\nQuery: {query}\n\nRefined Query:"}]
     )
     return response['choices'][0]['message']['content']
 

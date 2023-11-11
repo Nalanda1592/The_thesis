@@ -18,26 +18,32 @@ def main():
 
     if 'exp_select' not in st.session_state:
         st.session_state['exp_select'] = '0'
+    if 'dalex_select' not in st.session_state:
+        st.session_state['dalex_select'] = '0'
+    if 'fairlearn_select' not in st.session_state:
+        st.session_state['fairlearn_select'] = '0'
+
 
 
     with st.sidebar:
-        database_selection=st.radio(label='Choose the type of dataset you want to use and wait for a minute',options=('Gender Bias','Uneven Gender Distribution','Nepotism'))   
+        database_selection=st.radio(label='Choose the type of dataset you want to use',options=('Gender Bias','Uneven Gender Distribution','Nepotism'))   
 
         if database_selection=='Gender Bias':
             database_selection='1'
             file_num='1'
             if st.button('Total Salary Predictions'):
-                testingData=mc.run_model_generator_for_prediction(database_selection)
-                st.write(testingData.head())
+                #testingData=mc.run_model_generator_for_prediction(database_selection)
+                st.write("You can now ask questions related to the database being used,to the chatbot. Please use the keyword 'use tool' in your questions for better results. The columns of the database are Age, Gender, Experience, Education, Interview Score, Test Score, Actual Salary, PredictedSalary")
 
             if st.button('Explanation of Predictions(SHAP)'):
                 st.session_state['exp_select'] = '1'
-                output=mc.run_model_generator_for_explanation(database_selection)
-                st.write(output.head())
+                #output=mc.run_model_generator_for_explanation(database_selection)
+                st.write("You can now ask questions related to the SHAP values of features/columns in the database being used,to the chatbot. Please use the keyword 'use tool' and 'shap values' in your questions for appropriate results. SHAP is a library for explainability. It helps explain the AI model and its predicted results and gives significant insights on the results.")
 
             if st.button('Fairness of Predictions(dalex)'):
                 st.session_state['dalex_select'] = '1'
-                mc.run_model_generator_for_fairness_dalex(database_selection)
+                #mc.run_model_generator_for_fairness_dalex(database_selection)
+                st.write("Under construction")
 
             if st.button('Fairness of Predictions(Fairlearn)'):
                 st.session_state['fairlearn_select'] = '1'
