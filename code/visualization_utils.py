@@ -1,13 +1,9 @@
-import pinecone
 import openai
 import dotenv
 import os
 import streamlit as st
 import pandas as pd
-import model_creation
 from langchain.chains import ConversationChain
-from langchain.embeddings import SentenceTransformerEmbeddings
-from sentence_transformers import SentenceTransformer
 from langchain.chat_models import ChatOpenAI
 from langchain.prompts import (
     SystemMessagePromptTemplate,
@@ -15,7 +11,6 @@ from langchain.prompts import (
     ChatPromptTemplate,
     MessagesPlaceholder
 )
-from langchain.agents import Tool
 from langchain.tools import BaseTool
 from langchain.agents import load_tools
 from langchain_experimental.agents.agent_toolkits import create_pandas_dataframe_agent

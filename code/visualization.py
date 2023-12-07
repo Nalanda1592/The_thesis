@@ -6,7 +6,6 @@ import model_creation as mc
 from langchain.chat_models import ChatOpenAI
 from visualization_utils import *
 from langchain.memory import ConversationBufferWindowMemory
-from trubrics import Trubrics
 from langchain.callbacks import TrubricsCallbackHandler
 import uuid
 from trubrics.integrations.streamlit import FeedbackCollector

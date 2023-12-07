@@ -1,13 +1,10 @@
 import numpy as np
 import pandas as pd
-import pickle
 import os
 from sklearn.pipeline import Pipeline
-from scikeras.wrappers import KerasRegressor
 from sklearn.model_selection import train_test_split
 from fairlearn.metrics import equalized_odds_ratio,demographic_parity_ratio
 from fairlearn.adversarial import AdversarialFairnessClassifier
-from fairlearn.postprocessing import ThresholdOptimizer
 from fairlearn.metrics import MetricFrame,equalized_odds_ratio,demographic_parity_ratio,selection_rate
 from sklearn.metrics import accuracy_score, mean_squared_error
 from sklearn.compose import make_column_transformer, make_column_selector
