@@ -18,9 +18,11 @@ from langchain.prompts import (
 from langchain.agents import Tool
 from langchain.tools import BaseTool
 from langchain.agents import load_tools
-from langchain.agents import create_pandas_dataframe_agent,create_csv_agent
+from langchain_experimental.agents.agent_toolkits import create_pandas_dataframe_agent
+from langchain.agents.agent_types import AgentType
 from langchain.agents import initialize_agent
 from langchain.memory import ReadOnlySharedMemory
+import single_prediction as sp
 
 
 dotenv.load_dotenv('dev.env', override=True)
@@ -28,24 +30,43 @@ OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
 openai.api_key=OPENAI_API_KEY
 
 
-pinecone.init(api_key="636de315-26de-4439-bdf1-5603788c6963", environment="gcp-starter")
-index_name= "explainer-index"
+#pinecone.init(api_key="636de315-26de-4439-bdf1-5603788c6963", environment="gcp-starter")
+#index_name= "explainer-index"
 
-index = pinecone.Index(index_name)
+#index = pinecone.Index(index_name)
 
 dotenv.load_dotenv('dev.env', override=True)
 
-embeddings = SentenceTransformerEmbeddings(model_name="deepset/all-mpnet-base-v2-table")
+#embeddings = SentenceTransformerEmbeddings(model_name="deepset/all-mpnet-base-v2-table")
 
-model = SentenceTransformer("deepset/all-mpnet-base-v2-table", device='cpu')
+#model = SentenceTransformer("deepset/all-mpnet-base-v2-table", device='cpu')
+
 current_dir = os.getcwd()
 parent_dir = os.path.abspath(os.path.join(current_dir, os.pardir))
+p_folder=None
+exp_folder=None
+single_explainability=None
+fairlearn_folder_1=None
+fairlearn_folder_2=None
+fairlearn_folder_3=None
+fairlearn_folder_4=None
+fairlearn_folder_5=None
+mitigation_folder_1=None
+demo_filenum=None
+
+def input_parsing(query):
+    global demo_filenum
+    age, gender, experience, education, interview_score, test_score=query.split(",")
+    prediction=sp.predict_salary(age, gender, experience, education, interview_score, test_score,demo_filenum)
+    return prediction
 
 
 def query_redirecting(input :str,llm: ChatOpenAI,filenum: str):
+    global demo_filenum
+    demo_filenum=filenum
     response=None
     readonlymemory = ReadOnlySharedMemory(memory=st.session_state.buffer_memory)
-    system_msg_template = SystemMessagePromptTemplate.from_template(template="""Answer the question as a helpful assistant.""")
+    system_msg_template = SystemMessagePromptTemplate.from_template(template="""Answer the question as a helpful assistant.Use tool in most cases.""")
 
     human_msg_template = HumanMessagePromptTemplate.from_template(template="{input}")
 
@@ -54,51 +75,16 @@ def query_redirecting(input :str,llm: ChatOpenAI,filenum: str):
     #context = find_match(input)
     #response = conversation.predict(input=f"Context:\n {context} \n\n Query:\n{input}")
 
-    p_folder=None
-    exp_folder=None
+
     if(filenum=='1'):
-        original_file="Datensatz 1.csv"
         folder_name="Datensatz1_results"
-        p_folder=parent_dir + "/data/total_prediction_results/"+folder_name+"/total_database_prediction.csv"
-        if(st.session_state['exp_select']=='1'):
-            exp_folder=parent_dir + "/data/total_prediction_results/"+folder_name+"/explanations/shap_result.csv"
-        if(st.session_state['dalex_select'] == '1'):
-            dalex_folder_1=parent_dir + "/data/total_prediction_results/"+folder_name+"/fairness_measures/model_performance_for_fairness_using_dalex.txt"
-            dalex_folder_2=parent_dir + "/data/total_prediction_results/"+folder_name+"/fairness_measures/result_of_function_fairness_check_using_dalex.txt"
-            dalex_folder_3=parent_dir + "/data/total_prediction_results/"+folder_name+"/fairness_measures/group_fairness_regression_result_using_dalex.txt"
-        if(st.session_state['fairlearn_select'] == '1'):
-            fairlearn_folder_1=parent_dir + "/data/total_prediction_results/"+folder_name+"/fairness_measures/Fairlearn_results_1.csv"
-            fairlearn_folder_2=parent_dir + "/data/total_prediction_results/"+folder_name+"/fairness_measures/Fairlearn_results_2.csv"
-       
+        single_folder_name="Datensatz1_single_results"
+        tool_context_selection(folder_name,single_folder_name)
 
     elif(filenum=='2'):
-        original_file="Datensatz 2.csv"
         folder_name="Datensatz2_results"
-        p_folder=parent_dir + "/data/total_prediction_results/"+folder_name+"/total_database_prediction.csv"
-        if(st.session_state['exp_select']=='1'):
-            exp_folder=parent_dir + "/data/total_prediction_results/"+folder_name+"/explanations/shap_result.csv"
-        if(st.session_state['dalex_select'] == '1'):
-            dalex_folder_1=parent_dir + "/data/total_prediction_results/"+folder_name+"/fairness_measures/model_performance_for_fairness_using_dalex.txt"
-            dalex_folder_2=parent_dir + "/data/total_prediction_results/"+folder_name+"/fairness_measures/result_of_function_fairness_check_using_dalex.txt"
-            dalex_folder_3=parent_dir + "/data/total_prediction_results/"+folder_name+"/fairness_measures/group_fairness_regression_result_using_dalex.txt"
-        if(st.session_state['fairlearn_select'] == '1'):
-            fairlearn_folder_1=parent_dir + "/data/total_prediction_results/"+folder_name+"/fairness_measures/Fairlearn_results_1.csv"
-            fairlearn_folder_2=parent_dir + "/data/total_prediction_results/"+folder_name+"/fairness_measures/Fairlearn_results_2.csv"
-       
-
-    else:
-        original_file="Datensatz 3.csv"
-        folder_name="Datensatz3_results"
-        p_folder=parent_dir + "/data/total_prediction_results/"+folder_name+"/total_database_prediction.csv"
-        if(st.session_state['exp_select']=='1'):
-            exp_folder=parent_dir + "/data/total_prediction_results/"+folder_name+"/explanations/shap_result.csv"
-        if(st.session_state['dalex_select'] == '1'):
-            dalex_folder_1=parent_dir + "/data/total_prediction_results/"+folder_name+"/fairness_measures/model_performance_for_fairness_using_dalex.txt"
-            dalex_folder_2=parent_dir + "/data/total_prediction_results/"+folder_name+"/fairness_measures/result_of_function_fairness_check_using_dalex.txt"
-            dalex_folder_3=parent_dir + "/data/total_prediction_results/"+folder_name+"/fairness_measures/group_fairness_regression_result_using_dalex.txt"  
-        if(st.session_state['fairlearn_select'] == '1'):
-            fairlearn_folder_1=parent_dir + "/data/total_prediction_results/"+folder_name+"/fairness_measures/Fairlearn_results_1.csv"
-            fairlearn_folder_2=parent_dir + "/data/total_prediction_results/"+folder_name+"/fairness_measures/Fairlearn_results_2.csv"
+        single_folder_name="Datensatz2_single_results"
+        tool_context_selection(folder_name,single_folder_name)
        
 
     class PredictedDatabaseTool(BaseTool):
@@ -110,7 +96,7 @@ def query_redirecting(input :str,llm: ChatOpenAI,filenum: str):
             print("entered")
             df=pd.read_csv(p_folder)
 
-            pd_agent=create_pandas_dataframe_agent(llm, df, verbose=True)
+            pd_agent=create_pandas_dataframe_agent(llm, df, verbose=True,agent_type=AgentType.OPENAI_FUNCTIONS,handle_parsing_errors=True)
             return pd_agent.run(query)
 
       def _arun(self):
@@ -118,14 +104,14 @@ def query_redirecting(input :str,llm: ChatOpenAI,filenum: str):
 
     class ShapExplainPredictedResultTool(BaseTool):
       name = "SHAP Explainability QA"
-      description = "use this tool when you need to answer any SHAP explanation questions like which feature/column depends on which other feature, or what is the main feature/column. Use Shap explainability library concepts to answer the questions.show visualizations using shap plot functions if requested for."
+      description = "use this tool when you need to answer any SHAP explanation questions like which feature/column depends on which other feature, or what is the main feature/column. Use Shap explainability library concepts to answer the questions.Use the whole query as action input. Use absolute mean of shap values to find out feature importance."
 
       def _run(self, query: str):
             df=None
             print("entered")
             df=pd.read_csv(exp_folder)
 
-            pd_agent=create_pandas_dataframe_agent(llm, df, verbose=True)
+            pd_agent=create_pandas_dataframe_agent(llm, df, verbose=True,agent_type=AgentType.OPENAI_FUNCTIONS,handle_parsing_errors=True)
             return pd_agent.run(query)
 
       def _arun(self):
@@ -133,39 +119,72 @@ def query_redirecting(input :str,llm: ChatOpenAI,filenum: str):
       
     class FairlearnFairnessTool(BaseTool):
         name = "Fairlearn Fairness QA"
-        description = "use this tool to answer questions on the given context based on the concept of fairness library Fairlearn(search the internet and understand its fairness metrices in detail) and explain the given context accordingly to a layman. Also explain Demographic Parity Ratio and Equalized Odds ratio of Fairlearn fairness library in very easy way to a layman at first, as these are the metrics being used to calculate the fairness for the context.The interpretation of the values depend on the definitions as follows. Demographic Parity: It measures the ML model's ability to make prediction such that they are independent of the influence by sensitive groups. Equalized odds: It also ensures that ML model's predictions are independent of sensitive groups. It's more strict than Demographic parity by ensuring all groups in the dataset have same true positive rates and false positive rates. Equal Opportunity: It's similar to equalized odds but applies only to positive instances, i.e. Y=1. Demographic parity ratio: Ratio of selection rates between smallest and largest groups. Return type is a decimal value. A ratio of 1 means all groups have same selection rate. Equalized odds ratio: The equalized odds ratio of 1 means that all groups have the same true positive, true negative, false positive, and false negative rates."
+        description = "use this tool to answer questions on the given context based on the concept of fairness library Fairlearn(search the internet and understand its fairness metrices in detail) and explain the given context accordingly to a layman."
 
         def _run(self,query: str):
             print("entered")
 
             df_1=pd.read_csv(fairlearn_folder_1)
             df_2=pd.read_csv(fairlearn_folder_2)
+            df_3=pd.read_csv(fairlearn_folder_3)
+            df_4=pd.read_csv(fairlearn_folder_4)
+            df_5=pd.read_csv(fairlearn_folder_5)
 
-            pd_agent=create_pandas_dataframe_agent(llm,[df_1,df_2],verbose=True)
+            pd_agent=create_pandas_dataframe_agent(llm,[df_1,df_2,df_3,df_4,df_5],verbose=True,agent_type=AgentType.OPENAI_FUNCTIONS,handle_parsing_errors=True)
 
-            return pd_agent.run(query+"use tool")
+            result=pd_agent.run(query)
+
+            return result
 
         def _arun(self):
             raise NotImplementedError("This tool does not support async")
         
-    class DalexFairnessTool(BaseTool):
-        name = "Dalex Fairness QA"
-        description = "use this tool to answer questions on the given context based on the concept of fairness library dalex(search the internet and understand its fairness metrices like TPR (True Positive Rate), ACC (Accuracy),  PPV (Positive Predictive Value), FPR (False Positive Rate), STP(Statistical parity) in detail) and explain the given context accordingly to a layman. There are 3 types of possible conclusions: # not fair Conclusion: your model is not fair because 2 or more metric scores exceeded acceptable limits set by epsilon. # neither fair or not Conclusion: your model cannot be called fair because 1 metric score exceeded acceptable limits set by epsilon.It does not mean that your model is unfair but it cannot be automatically approved based on these metrics. # fair Conclusion: your model is fair in terms of checked fairness metrics.The context here is for male and female subgroups."
-
+    class UnfairnessMitigationTool(BaseTool):
+        name = "Unfairness Mitigation QA"
+        description = "use this tool to answer questions on the given context based on the concept of Adversarial Mitigation Technique in fairness library Fairlearn and explain the given context accordingly to a layman."
 
         def _run(self,query: str):
-            df_1=pd.read_csv(dalex_folder_1)
-            df_2=pd.read_csv(dalex_folder_2)
-            df_3=pd.read_csv(dalex_folder_3)
+            print("entered")
 
-            pd_agent=create_pandas_dataframe_agent(llm, [df_1,df_2,df_3,], verbose=True)
+            df_1=pd.read_csv(mitigation_folder_1)      
 
+            pd_agent=create_pandas_dataframe_agent(llm,[df_1],verbose=True,handle_parsing_errors=True)
+
+            result=pd_agent.run(query)
+
+            return result
+
+        def _arun(self):
+            raise NotImplementedError("This tool does not support async")
+        
+        
+    class SinglePredictionTool(BaseTool):
+        name = "Single Prediction QA"
+        description="Use this tool to calculate single prediction. The input to this tool should be a comma separated list of numbers and string values, of length six, representing age, gender, experience, education, interview_score, test_score needed to get a single prediction. For example, `32,f,7,Ma,8,9` would be the input if you wanted to take values of age, gender, experience, education, interview_score, test_score consecutively."
+
+        def _run(self,query):
+            result=input_parsing(query)
+            return result
+
+        def _arun(self):
+            raise NotImplementedError("This tool does not support async")
+        
+    class SingleExplanationTool(BaseTool):
+        name = "Single SHAP Explainability QA"
+        description = "use this tool when you need to answer the SHAP explanation questions for the single salary prediction like which feature/column depends on which other feature, or what is the main feature/column. Use Shap explainability library concepts to answer the questions.Use the whole query as action input. Use absolute mean of shap values to find out feature importance."
+
+        def _run(self, query: str):
+            df=None
+            print("entered")
+            df=pd.read_csv(single_explainability)
+
+            pd_agent=create_pandas_dataframe_agent(llm, df, verbose=True,agent_type=AgentType.OPENAI_FUNCTIONS,handle_parsing_errors=True)
             return pd_agent.run(query)
 
         def _arun(self):
             raise NotImplementedError("This tool does not support async")
 
-    tools = [PredictedDatabaseTool(),ShapExplainPredictedResultTool(),FairlearnFairnessTool(),DalexFairnessTool()]
+    tools = [PredictedDatabaseTool(),ShapExplainPredictedResultTool(),FairlearnFairnessTool(),UnfairnessMitigationTool(),SinglePredictionTool(),SingleExplanationTool()]
     
     # initialize agent with tools
     main_agent = initialize_agent(
@@ -176,19 +195,26 @@ def query_redirecting(input :str,llm: ChatOpenAI,filenum: str):
         verbose=True,
         max_iterations=3,
         early_stopping_method='generate',
-        memory=st.session_state.buffer_memory
+        memory=st.session_state.buffer_memory,
+        handle_parsing_errors=True
     )
+    final_word=None
+    try:
+        response=main_agent(input+"use tool")
+        print("the response is"+ response.get('output'))
+        final_word=response.get('output')
+    except Exception as e:
+        result = str(e)
+        if result.startswith("Could not parse LLM output: `"):
+            result = result.removeprefix("Could not parse LLM output: `").removesuffix("`")
+        if result.startswith("An output parsing error occurred.`"):
+            result = result.removeprefix("Could not parse LLM output: `").removesuffix("`")
+        print(result)
+        final_word=result
 
-    response=main_agent(input)
-    print("the response is"+ response.get('output'))
 
+    return final_word
 
-    return response.get('output')
-
-def find_match(input):
-    input_em = model.encode(input).tolist()
-    result = index.query(input_em, top_k=1, includeMetadata=True)
-    return result['matches'][0]['id']
 
 def query_refiner(conversation, query):
 
@@ -208,3 +234,39 @@ def get_conversation_string():
         conversation_string += "Human: "+st.session_state['requests'][i] + "\n"
         conversation_string += "Bot: "+ st.session_state['responses'][i+1] + "\n"
     return conversation_string
+
+def database_selection(database):
+    if st.button('Total Salary Predictions'):
+        #testingData=mc.run_model_generator_for_prediction(database_selection)
+        st.write("You can now ask questions related to the database being used,to the chatbot. Please use the keyword 'use tool' in your questions for better results. The columns of the database are Age, Gender, Experience, Education, Interview Score, Test Score, Actual Salary, PredictedSalary")
+
+    if st.button('Explanation of Predictions(SHAP)'):
+        st.session_state['exp_select'] = '1'
+        #output=mc.run_model_generator_for_explanation(database_selection)
+        st.write("You can now ask questions related to the SHAP values of features/columns in the database being used,to the chatbot. Please use the keyword 'use tool' and 'shap values' in your questions for appropriate results. SHAP is a library for explainability. It helps explain the AI model and its predicted results and gives significant insights on the results.")
+
+    if st.button('Fairness of Predictions(dalex)'):
+        st.session_state['dalex_select'] = '1'
+        #mc.run_model_generator_for_fairness_dalex(database_selection)
+        st.write("Under construction")
+
+    if st.button('Fairness of Predictions(Fairlearn)'):
+        st.session_state['fairlearn_select'] = '1'
+        #mc.fairness_model_creation(database_selection)
+
+def tool_context_selection(folder_name,single_folder_name):
+
+    global parent_dir,p_folder,exp_folder,single_explainability,fairlearn_folder_1,fairlearn_folder_2,fairlearn_folder_3,fairlearn_folder_4,fairlearn_folder_5,mitigation_folder_1
+
+    p_folder=parent_dir + "/data/total_prediction_results/"+folder_name+"/total_database_prediction.csv"
+    single_explainability=parent_dir + "/data/single_prediction_results/"+single_folder_name+"/total_result.csv"
+    if(st.session_state['exp_select']=='1'):
+        exp_folder=parent_dir + "/data/total_prediction_results/"+folder_name+"/explanations/shap_result.csv"
+    if(st.session_state['fairlearn_select'] == '1'):
+        fairlearn_folder_1=parent_dir + "/data/total_prediction_results/"+folder_name+"/fairness_measures/Fairlearn_results_1.csv"
+        fairlearn_folder_2=parent_dir + "/data/total_prediction_results/"+folder_name+"/fairness_measures/Fairlearn_results_2.csv"
+        fairlearn_folder_3=parent_dir + "/data/total_prediction_results/"+folder_name+"/fairness_measures/Fairlearn_results_3.csv"
+        fairlearn_folder_4=parent_dir + "/data/total_prediction_results/"+folder_name+"/fairness_measures/Fairlearn_results_4.csv"
+        fairlearn_folder_5=parent_dir + "/data/total_prediction_results/"+folder_name+"/fairness_measures/Fairlearn_results_5.csv"
+    if(st.session_state['mitigation_select'] == '1'):
+        mitigation_folder_1=parent_dir + "/data/total_prediction_results/"+folder_name+"/fairness_measures/unfairness_mitigation_result.csv"
