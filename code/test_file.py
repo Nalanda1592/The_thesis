@@ -24,15 +24,15 @@ def max_vals(data,data_exp):
 
 def main():
     #for gender bias data 
-    data_1 = pd.read_csv(current_dir + "/data/" + "Datensatz 1.csv")
-    data_2=pd.read_csv(current_dir + "/data/total_prediction_results/Datensatz1_results/explanations/shap_result.csv")
+    data_1 = pd.read_csv("data/" + "Datensatz 1.csv")
+    data_2=pd.read_csv("data/total_prediction_results/Datensatz1_results/explanations/shap_result.csv")
     max_vals(data_1,data_2)
 
     #for uneven gender distribution data 
-    data_2 = pd.read_csv(current_dir + "/data/" + "Datensatz 2.csv")
+    data_2 = pd.read_csv("data/" + "Datensatz 2.csv")
 
     #for gender bias data 
-    data_3 = pd.read_csv(current_dir + "/data/" + "Datensatz 3.csv")
+    data_3 = pd.read_csv("data/" + "Datensatz 3.csv")
    
 
 if __name__ == "__main__":

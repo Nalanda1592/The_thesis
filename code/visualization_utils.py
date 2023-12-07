@@ -253,15 +253,15 @@ def tool_context_selection(folder_name,single_folder_name):
 
     global parent_dir,p_folder,exp_folder,single_explainability,fairlearn_folder_1,fairlearn_folder_2,fairlearn_folder_3,fairlearn_folder_4,fairlearn_folder_5,mitigation_folder_1
 
-    p_folder="/data/total_prediction_results/"+folder_name+"/total_database_prediction.csv"
-    single_explainability="/data/single_prediction_results/"+single_folder_name+"/total_result.csv"
+    p_folder="data/total_prediction_results/"+folder_name+"/total_database_prediction.csv"
+    single_explainability="data/single_prediction_results/"+single_folder_name+"/total_result.csv"
     if(st.session_state['exp_select']=='1'):
-        exp_folder="/data/total_prediction_results/"+folder_name+"/explanations/shap_result.csv"
+        exp_folder="data/total_prediction_results/"+folder_name+"/explanations/shap_result.csv"
     if(st.session_state['fairlearn_select'] == '1'):
-        fairlearn_folder_1="/data/total_prediction_results/"+folder_name+"/fairness_measures/Fairlearn_results_1.csv"
-        fairlearn_folder_2="/data/total_prediction_results/"+folder_name+"/fairness_measures/Fairlearn_results_2.csv"
-        fairlearn_folder_3="/data/total_prediction_results/"+folder_name+"/fairness_measures/Fairlearn_results_3.csv"
-        fairlearn_folder_4="/data/total_prediction_results/"+folder_name+"/fairness_measures/Fairlearn_results_4.csv"
-        fairlearn_folder_5="/data/total_prediction_results/"+folder_name+"/fairness_measures/Fairlearn_results_5.csv"
+        fairlearn_folder_1="data/total_prediction_results/"+folder_name+"/fairness_measures/Fairlearn_results_1.csv"
+        fairlearn_folder_2="data/total_prediction_results/"+folder_name+"/fairness_measures/Fairlearn_results_2.csv"
+        fairlearn_folder_3="data/total_prediction_results/"+folder_name+"/fairness_measures/Fairlearn_results_3.csv"
+        fairlearn_folder_4="data/total_prediction_results/"+folder_name+"/fairness_measures/Fairlearn_results_4.csv"
+        fairlearn_folder_5="data/total_prediction_results/"+folder_name+"/fairness_measures/Fairlearn_results_5.csv"
     if(st.session_state['mitigation_select'] == '1'):
-        mitigation_folder_1="/data/total_prediction_results/"+folder_name+"/fairness_measures/unfairness_mitigation_result.csv"
+        mitigation_folder_1="data/total_prediction_results/"+folder_name+"/fairness_measures/unfairness_mitigation_result.csv"

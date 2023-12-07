@@ -25,9 +25,9 @@ def read_data(file_num):
     parent_dir = os.path.abspath(os.path.join(current_dir, os.pardir))
 
     if file_num == "1":
-        data = pd.read_csv("/data/" + "Datensatz 1.csv")
+        data = pd.read_csv("data/" + "Datensatz 1.csv")
     elif file_num == "2":
-        data = pd.read_csv("/data/" + "Datensatz 2.csv")
+        data = pd.read_csv("data/" + "Datensatz 2.csv")
     #else:
     #    data = pd.read_csv(parent_dir + "/data/" + "Datensatz 1.csv")
 
@@ -101,7 +101,7 @@ def create_model(data, parent_dir,file_num):
 
     # save the transformer
 
-    pickle.dump(column_transformer, open("/data/" + 'column_transformer.pkl', 'wb'))
+    pickle.dump(column_transformer, open("data/" + 'column_transformer.pkl', 'wb'))
         
     # save the results
 
@@ -110,7 +110,7 @@ def create_model(data, parent_dir,file_num):
     elif(file_num=="2"):
          folder_name="Datensatz2_results"
 
-    p_folder="/data/total_prediction_results/"+folder_name+"/"
+    p_folder="data/total_prediction_results/"+folder_name+"/"
     filename='total_database_prediction.csv' 
     testingData.to_csv(Path(p_folder+filename), index=False)
 
@@ -164,9 +164,9 @@ def run_model_generator_for_explanation(file_num):
     
     p=None
     if(file_num=="1"):
-        p="/data/total_prediction_results/Datensatz1_results/explanations/"
+        p="data/total_prediction_results/Datensatz1_results/explanations/"
     elif(file_num=="2"):
-        p="/data/total_prediction_results/Datensatz2_results/explanations/"
+        p="data/total_prediction_results/Datensatz2_results/explanations/"
     
     #filename='shap_result.csv' 
     #final_result.to_csv(Path(p+filename), index=False)
@@ -201,9 +201,9 @@ def fairness_model_creation(file_num):
 
     p=None
     if(file_num=="1"):
-        p="/data/total_prediction_results/Datensatz1_results/"
+        p="data/total_prediction_results/Datensatz1_results/"
     elif(file_num=="2"):
-        p="/data/total_prediction_results/Datensatz2_results/"
+        p="data/total_prediction_results/Datensatz2_results/"
 
     df=pd.read_csv(p+'total_database_prediction.csv')
 
@@ -266,13 +266,13 @@ def run_model_generator_for_mitigation(file_num):
     p=None
     main_df=None
     if(file_num=="1"):
-        p="/data/total_prediction_results/Datensatz1_results/fairness_measures/"
-        main_df=pd.read_csv("/data/total_prediction_results/Datensatz1_results/fairness_measures/Fairlearn_results_1.csv")
-        side_df=pd.read_csv("/data/total_prediction_results/Datensatz1_results/fairness_measures/Fairlearn_results_5.csv",index_col=0)
+        p="data/total_prediction_results/Datensatz1_results/fairness_measures/"
+        main_df=pd.read_csv("data/total_prediction_results/Datensatz1_results/fairness_measures/Fairlearn_results_1.csv")
+        side_df=pd.read_csv("data/total_prediction_results/Datensatz1_results/fairness_measures/Fairlearn_results_5.csv",index_col=0)
     elif(file_num=="2"):
-        p="/data/total_prediction_results/Datensatz2_results/fairness_measures/"
-        main_df=pd.read_csv("/data/total_prediction_results/Datensatz2_results/fairness_measures/Fairlearn_results_1.csv")
-        side_df=pd.read_csv("/data/total_prediction_results/Datensatz2_results/fairness_measures/Fairlearn_results_5.csv",index_col=0)
+        p="datatotal_prediction_results/Datensatz2_results/fairness_measures/"
+        main_df=pd.read_csv("data/total_prediction_results/Datensatz2_results/fairness_measures/Fairlearn_results_1.csv")
+        side_df=pd.read_csv("data/total_prediction_results/Datensatz2_results/fairness_measures/Fairlearn_results_5.csv",index_col=0)
 
     main_df["Demographic Parity Ratio after mitigation"]=m_dpr
     main_df["Equalized Odds Ratio after mitigation"]=m_eqo
