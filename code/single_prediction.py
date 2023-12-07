@@ -16,7 +16,7 @@ def load_model(parent_dir,file_num):
     elif(file_num=="2"):
          folder_name="Datensatz2_results"
 
-    p_folder=parent_dir + "/data/total_prediction_results/"+folder_name+"/"
+    p_folder="/data/total_prediction_results/"+folder_name+"/"
 
     filename = p_folder +  'neural_model.sav'
     with open(filename, 'rb') as f:
@@ -26,7 +26,7 @@ def load_model(parent_dir,file_num):
 
 def load_column_transformer(parent_dir):
 
-    filename = parent_dir + "/data/" + 'column_transformer.pkl'
+    filename = "/data/" + 'column_transformer.pkl'
     with open(filename, 'rb') as f:
         column_transformer = pickle.load(f)
 
@@ -36,9 +36,9 @@ def load_explainer(parent_dir,file_num):
 
     p=None
     if(file_num=="1"):
-        p=parent_dir + "/data/total_prediction_results/Datensatz1_results/explanations/"
+        p="/data/total_prediction_results/Datensatz1_results/explanations/"
     elif(file_num=="2"):
-        p=parent_dir + "/data/total_prediction_results/Datensatz2_results/explanations/"
+        p="/data/total_prediction_results/Datensatz2_results/explanations/"
 
     filename = p + 'explainer.pkl'
     with open(filename, 'rb') as f:
@@ -80,9 +80,9 @@ def predict_salary(age, gender, experience, education, interview_score, test_sco
 
         p=None
         if(file_num=="1"):
-            p=parent_dir + "/data/single_prediction_results/Datensatz1_single_results/"
+            p="/data/single_prediction_results/Datensatz1_single_results/"
         elif(file_num=="2"):
-            p=parent_dir + "/data/single_prediction_results/Datensatz2_single_results/"
+            p="/data/single_prediction_results/Datensatz2_single_results/"
 
         filename='total_result.csv' 
         final_result.to_csv(Path(p+filename), index=False)
