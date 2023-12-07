@@ -9,3 +9,4 @@ pickleshare==0.7.5
 shap==0.41.0
 fairlearn==0.8.0
 python-dotenv==1.0.0
+tensorflow>=2.12.0
