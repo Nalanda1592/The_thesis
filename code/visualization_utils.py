@@ -166,7 +166,7 @@ def query_redirecting(input :str,llm: ChatOpenAI,filenum: str):
         
     class SingleExplanationTool(BaseTool):
         name = "Single SHAP Explainability QA"
-        description = "use this tool when you need to answer the SHAP explanation questions for the single salary prediction like which feature/column depends on which other feature, or what is the main feature/column. Use Shap explainability library concepts to answer the questions.Use the whole query as action input. Use absolute mean of shap values to find out feature importance."
+        description = "use this tool when you need to answer the single salary prediction's SHAP explanation questions like which feature/column depends on which other feature, or what is the main feature/column. Use Shap explainability library concepts to answer the questions.Use the whole query as action input. Use absolute mean of shap values to find out feature importance."
 
         def _run(self, query: str):
             df=None

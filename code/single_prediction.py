@@ -82,7 +82,7 @@ def predict_salary(age, gender, experience, education, interview_score, test_sco
         if(file_num=="1"):
             p=parent_dir + "/data/single_prediction_results/Datensatz1_single_results/"
         elif(file_num=="2"):
-            p=parent_dir + "data/single_prediction_results/Datensatz2_single_results/"
+            p=parent_dir + "/data/single_prediction_results/Datensatz2_single_results/"
 
         filename='total_result.csv' 
         final_result.to_csv(Path(p+filename), index=False)
