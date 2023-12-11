@@ -270,12 +270,12 @@ def run_model_generator_for_mitigation(file_num):
         main_df=pd.read_csv("data/total_prediction_results/Datensatz1_results/fairness_measures/Fairlearn_results_1.csv")
         side_df=pd.read_csv("data/total_prediction_results/Datensatz1_results/fairness_measures/Fairlearn_results_5.csv",index_col=0)
     elif(file_num=="2"):
-        p="datatotal_prediction_results/Datensatz2_results/fairness_measures/"
+        p="data/total_prediction_results/Datensatz2_results/fairness_measures/"
         main_df=pd.read_csv("data/total_prediction_results/Datensatz2_results/fairness_measures/Fairlearn_results_1.csv")
         side_df=pd.read_csv("data/total_prediction_results/Datensatz2_results/fairness_measures/Fairlearn_results_5.csv",index_col=0)
 
-    main_df["Demographic Parity Ratio after mitigation"]=m_dpr
-    main_df["Equalized Odds Ratio after mitigation"]=m_eqo
+    main_df["Demographic Parity Ratio after Adversarial Mitigation Technique"]=m_dpr
+    main_df["Equalized Odds Ratio after Adversarial Mitigation Technique"]=m_eqo
 
     #selec_accu=pd.concat([result.set_index('Gender'),side_df.set_index('Gender')], axis=1, join='inner')
     selec_accu=result.join(side_df)

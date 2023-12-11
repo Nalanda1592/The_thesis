@@ -128,17 +128,12 @@ def fairness_dataset_gender(df,rank_0,rank_1,rank_2,rank_3):
 
 def unfairness_mitigation_fairlearn(data):
 
-    current_dir = os.getcwd()
-    parent_dir = os.path.abspath(os.path.join(current_dir, os.pardir))
 
     target=['Salary']
     predictors=['Age', 'Gender', 'Experience', 'Education', 'Interview Score', 'Test Score']
 
     X=data[predictors]
     y=data[target]
-
-    #column_transformer = single_prediction.load_column_transformer(parent_dir)
-    #data_input_encoded = column_transformer.fit_transform(X)
 
     z = X["Gender"]
     average_gen=data['Salary'].mean()
@@ -208,7 +203,7 @@ def unfairness_mitigation_fairlearn(data):
     print(f'Value of demographic parity ratio for overall dataset: {round(m_dpr, 2)}')
     m_eqo = equalized_odds_ratio(Y_test, predictions, sensitive_features=Z_test)
     print(f'Value of equalized odds ratio: {round(m_eqo, 2)}')
-    mf = MetricFrame(metrics={"mitigated accuracy_score": accuracy_score, "mitigated selection_rate": selection_rate},y_true=Y_test==pos_label,y_pred=predictions==pos_label,sensitive_features=Z_test)
+    mf = MetricFrame(metrics={"mitigated accuracy_score(Adversarial Mitigation Technique)": accuracy_score, "mitigated selection_rate(Adversarial Mitigation Technique)": selection_rate},y_true=Y_test==pos_label,y_pred=predictions==pos_label,sensitive_features=Z_test)
 
     result_df=mf.by_group
     #result_df["mitigated demographic parity ratio"]=m_dpr

@@ -47,6 +47,7 @@ fairlearn_folder_3=None
 fairlearn_folder_4=None
 fairlearn_folder_5=None
 mitigation_folder_1=None
+mitigation_folder_2=None
 demo_filenum=None
 
 def input_parsing(query):
@@ -136,14 +137,15 @@ def query_redirecting(input :str,llm: ChatOpenAI,filenum: str):
         
     class UnfairnessMitigationTool(BaseTool):
         name = "Unfairness Mitigation QA"
-        description = "use this tool to answer questions on the given context based on the concept of Adversarial Mitigation Technique in fairness library Fairlearn and explain the given context accordingly to a layman."
+        description = "use this tool to answer unfairness mitigation questions on the given context based on the concept of Adversarial Mitigation Technique in fairness library Fairlearn and explain the technique and given context accordingly to a layman."
 
         def _run(self,query: str):
             print("entered")
 
-            df_1=pd.read_csv(mitigation_folder_1)      
+            df_1=pd.read_csv(mitigation_folder_1) 
+            df_2=pd.read_csv(mitigation_folder_2)      
 
-            pd_agent=create_pandas_dataframe_agent(llm,[df_1],verbose=True,handle_parsing_errors=True)
+            pd_agent=create_pandas_dataframe_agent(llm,[df_1,df_2],verbose=True, agent_type=AgentType.OPENAI_FUNCTIONS, handle_parsing_errors=True)
 
             result=pd_agent.run(query)
 
@@ -251,7 +253,7 @@ def database_selection(database):
 
 def tool_context_selection(folder_name,single_folder_name):
 
-    global parent_dir,p_folder,exp_folder,single_explainability,fairlearn_folder_1,fairlearn_folder_2,fairlearn_folder_3,fairlearn_folder_4,fairlearn_folder_5,mitigation_folder_1
+    global parent_dir,p_folder,exp_folder,single_explainability,fairlearn_folder_1,fairlearn_folder_2,fairlearn_folder_3,fairlearn_folder_4,fairlearn_folder_5,mitigation_folder_1,mitigation_folder_2
 
     p_folder="data/total_prediction_results/"+folder_name+"/total_database_prediction.csv"
     single_explainability="data/single_prediction_results/"+single_folder_name+"/total_result.csv"
@@ -264,4 +266,7 @@ def tool_context_selection(folder_name,single_folder_name):
         fairlearn_folder_4="data/total_prediction_results/"+folder_name+"/fairness_measures/Fairlearn_results_4.csv"
         fairlearn_folder_5="data/total_prediction_results/"+folder_name+"/fairness_measures/Fairlearn_results_5.csv"
     if(st.session_state['mitigation_select'] == '1'):
-        mitigation_folder_1="data/total_prediction_results/"+folder_name+"/fairness_measures/unfairness_mitigation_result.csv"
+        mitigation_folder_1="data/total_prediction_results/"+folder_name+"/fairness_measures/unfairness_mitigation_result_1.csv"
+        mitigation_folder_2="data/total_prediction_results/"+folder_name+"/fairness_measures/unfairness_mitigation_result_2.csv"
+
+
