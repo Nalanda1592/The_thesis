@@ -3,6 +3,7 @@ import dotenv
 import os
 import streamlit as st
 import pandas as pd
+import model_creation as mc
 from langchain.chains import ConversationChain
 from langchain.chat_models import ChatOpenAI
 from langchain.prompts import (
@@ -232,24 +233,26 @@ def get_conversation_string():
         conversation_string += "Bot: "+ st.session_state['responses'][i+1] + "\n"
     return conversation_string
 
-def database_selection(database):
+def database_selection_func(database_selection):
     if st.button('Total Salary Predictions'):
         #testingData=mc.run_model_generator_for_prediction(database_selection)
-        st.write("You can now ask questions related to the database being used,to the chatbot. Please use the keyword 'use tool' in your questions for better results. The columns of the database are Age, Gender, Experience, Education, Interview Score, Test Score, Actual Salary, PredictedSalary")
+        st.write("You can now ask questions related to the dataset being used,to the chatbot. Please use the keyword 'database' in your questions for better results. The columns of the dataset are Age, Gender, Experience, Education, Interview Score, Test Score, Actual Salary, PredictedSalary")
 
     if st.button('Explanation of Predictions(SHAP)'):
         st.session_state['exp_select'] = '1'
         #output=mc.run_model_generator_for_explanation(database_selection)
-        st.write("You can now ask questions related to the SHAP values of features/columns in the database being used,to the chatbot. Please use the keyword 'use tool' and 'shap values' in your questions for appropriate results. SHAP is a library for explainability. It helps explain the AI model and its predicted results and gives significant insights on the results.")
-
-    if st.button('Fairness of Predictions(dalex)'):
-        st.session_state['dalex_select'] = '1'
-        #mc.run_model_generator_for_fairness_dalex(database_selection)
-        st.write("Under construction")
+        st.write("You can now ask questions related to the SHAP values of features/columns in the dataset being used,to the chatbot. Please use the keyword 'database' and 'shap values' in your questions for appropriate results. SHAP is a library for explainability. It helps explain the AI model and its predicted results and gives significant insights on the results.")
 
     if st.button('Fairness of Predictions(Fairlearn)'):
         st.session_state['fairlearn_select'] = '1'
-        #mc.fairness_model_creation(database_selection)
+        fair_output=mc.fairness_model_creation(database_selection)
+        st.write(fair_output)
+
+    if st.button('Unfairness Mitigation'):
+        st.session_state['mitigation_select'] = '1'
+
+        result_metrices=mc.run_model_generator_for_mitigation(database_selection)
+        st.write(result_metrices)
 
 def tool_context_selection(folder_name,single_folder_name):
 

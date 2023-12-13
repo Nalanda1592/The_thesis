@@ -6,6 +6,7 @@ import model_creation as mc
 from langchain.chat_models import ChatOpenAI
 from visualization_utils import *
 from langchain.memory import ConversationBufferWindowMemory
+from trubrics import Trubrics
 from langchain.callbacks import TrubricsCallbackHandler
 import uuid
 from trubrics.integrations.streamlit import FeedbackCollector
@@ -39,65 +40,18 @@ def main():
 
 
     with st.sidebar:
-        database_selection=st.radio(label='Choose the type of dataset you want to use',options=('Gender Bias','Uneven Gender Distribution'))   
-
-        if st.button("Refresh"):
-            #st.session_state.feedback_key += 1
-            st.session_state.logged_prompt = {}
-            st.rerun()
+        database_selection=st.radio(label='Choose the type of dataset you want to use',options=('Gender Bias','Uneven Gender Distribution'))  
 
         if database_selection=='Gender Bias':
             database_selection='1'
             file_num='1'
-            if st.button('Total Salary Predictions'):
-                #testingData=mc.run_model_generator_for_prediction(database_selection)
-                st.write("You can now ask questions related to the database being used,to the chatbot. Please use the keyword 'database' in your questions. The columns of the database are Age, Gender, Experience, Education, Interview Score, Test Score, Actual Salary, PredictedSalary")
-
-            if st.button('Explanation of Predictions(SHAP)'):
-                st.session_state['exp_select'] = '1'
-                #output=mc.run_model_generator_for_explanation(database_selection)
-                st.write("You can now ask questions related to the SHAP values of features/columns in the database being used,to the chatbot. Please use the keywords 'database' and shap values' in your questions for appropriate results. SHAP is a library for explainability. It helps explain the AI model and its predicted results and gives significant insights on the results.")
-
-            if st.button('Fairness of Predictions(Fairlearn)'):
-                st.session_state['fairlearn_select'] = '1'
-                fair_output=mc.fairness_model_creation(database_selection)
-                st.write(fair_output)
-
-            if st.button('Unfairness Mitigation'):
-                st.session_state['mitigation_select'] = '1'
-
-                result_metrices=mc.run_model_generator_for_mitigation(database_selection)
-                st.write(result_metrices)
+            database_selection_func(database_selection)
             
 
         elif database_selection=='Uneven Gender Distribution':
             database_selection='2'
             file_num='2'
-            if st.button('Total Salary Predictions'):
-                #testingData=mc.run_model_generator_for_prediction(database_selection)
-                #st.write(testingData.head())  
-                st.write("You can now ask questions related to the database being used,to the chatbot. Please use the keyword 'database' in your questions. The columns of the database are Age, Gender, Experience, Education, Interview Score, Test Score, Actual Salary, PredictedSalary")
- 
-
-            if st.button('Explanation of Predictions(SHAP)'):
-                st.session_state['exp_select'] = '1'
-                #output=mc.run_model_generator_for_explanation(database_selection)
-                #st.write(output.head()) 
-                st.write("You can now ask questions related to the SHAP values of features/columns in the database being used,to the chatbot. Please use the keywords 'database' and shap values' in your questions for appropriate results. SHAP is a library for explainability. It helps explain the AI model and its predicted results and gives significant insights on the results.")
-               
-
-            if st.button('Fairness of Predictions(Fairlearn)'):
-                st.session_state['fairlearn_select'] = '1'
-                fair_output=mc.fairness_model_creation(database_selection)
-                st.write(fair_output)  
-
-            if st.button('Unfairness Mitigation'):
-                st.session_state['mitigation_select'] = '1'
-
-                result_metrices=mc.run_model_generator_for_mitigation(database_selection)
-                st.write(result_metrices)
-
-        
+            database_selection_func(database_selection)
 
     if 'responses' not in st.session_state:
         st.session_state['responses'] = ["How can I assist you?"]
@@ -106,7 +60,7 @@ def main():
         st.session_state['requests'] = []
 
 
-    tb = FeedbackCollector(project="default",email=os.environ["TRUBRICS_EMAIL"],password=os.environ["TRUBRICS_PASSWORD"],)
+    tb = FeedbackCollector(project="thesis",email=os.environ["TRUBRICS_EMAIL"],password=os.environ["TRUBRICS_PASSWORD"],)
 
     #user_prompt = tb.log_prompt(config_model={"model": "gpt-4"},prompt="How may I help you?",)
 
@@ -115,7 +69,7 @@ def main():
 
     llm = ChatOpenAI(temperature = 0, model_name='gpt-4',openai_api_key= OPENAI_API_KEY,callbacks=[
                 TrubricsCallbackHandler(
-                    project="default",
+                    project="thesis",
                     tags=["chat model"],
                     user_id="user-id-1234",
                     some_metadata={"hello": [1, 2]},
@@ -133,8 +87,16 @@ def main():
     #container for text box
     textcontainer = st.container()
 
+    def clear_text():
+        st.session_state.my_text = st.session_state.input
+        st.session_state.input = ""
+
+
     with textcontainer:
-        query = st.text_input("Query: ", key="input")
+        st.text_input("Query: ", key="input", on_change=clear_text)
+        query = st.session_state.get('my_text', '')
+        st.session_state.my_text=""
+
         response=None
 
         if query:
@@ -164,16 +126,16 @@ def main():
                 if i < len(st.session_state['requests']):
                     message(st.session_state["requests"][i], is_user=True,key=str(i)+ '_user')
 
-    if st.session_state.logged_prompt:
-        user_feedback = tb.st_feedback(
-            component="default",
-            feedback_type="thumbs",
-            open_feedback_label="[Optional] Provide additional feedback",
-            model="gpt-4",
-            prompt_id=st.session_state.session_id,
-            key=st.session_state.feedback_key,
-            align="flex-end",
-        )  
+        if st.session_state.logged_prompt:
+            user_feedback = tb.st_feedback(
+                component="thesis",
+                feedback_type="thumbs",
+                open_feedback_label="[Optional] Provide additional feedback",
+                model="gpt-4",
+                prompt_id=st.session_state.session_id,
+                key=st.session_state.feedback_key,
+                align="flex-end",
+            )  
     
  
 if __name__=='__main__':
