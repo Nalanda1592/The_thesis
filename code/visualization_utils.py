@@ -13,7 +13,6 @@ from langchain.prompts import (
     MessagesPlaceholder
 )
 from langchain.tools import BaseTool
-from langchain.agents import load_tools
 from langchain_experimental.agents.agent_toolkits import create_pandas_dataframe_agent
 from langchain.agents.agent_types import AgentType
 from langchain.agents import initialize_agent
@@ -84,9 +83,9 @@ def query_redirecting(input :str,llm: ChatOpenAI,filenum: str):
         tool_context_selection(folder_name,single_folder_name)
        
 
-    class PredictedDatabaseTool(BaseTool):
-      name = "Database QA"
-      description = "use this tool when you need to answer any questions regarding the database"
+    class PredictedDatasetTool(BaseTool):
+      name = "Dataset QA"
+      description = "use this tool when you need to answer any questions regarding the dataset"
 
       def _run(self, query: str):
             df=None
@@ -116,7 +115,7 @@ def query_redirecting(input :str,llm: ChatOpenAI,filenum: str):
       
     class FairlearnFairnessTool(BaseTool):
         name = "Fairlearn Fairness QA"
-        description = "use this tool to answer questions on the given context based on the concept of fairness library Fairlearn(search the internet and understand its fairness metrices in detail) and explain the given context accordingly to a layman."
+        description = "use this tool to answer questions on the given context based on the concept of fairness library Fairlearn(search the internet and understand its fairness metrices in detail) and explain the given context accordingly to a layman. Also explain strategies to improve the results according to Fairlearn library, if asked so. Discuss mitigation techniques and compare them if asked so."
 
         def _run(self,query: str):
             print("entered")
@@ -138,7 +137,7 @@ def query_redirecting(input :str,llm: ChatOpenAI,filenum: str):
         
     class UnfairnessMitigationTool(BaseTool):
         name = "Unfairness Mitigation QA"
-        description = "use this tool to answer unfairness mitigation questions on the given context based on the concept of Adversarial Mitigation Technique in fairness library Fairlearn and explain the technique and given context accordingly to a layman."
+        description = "use this tool to answer unfairness mitigation questions on the given context based on the concept of Adversarial Mitigation Technique in fairness library Fairlearn and explain the technique and given context accordingly to a layman. Answer any question about Adversarial Mitigation Technique like its pros over other mitigation techniques, how is it better etc. Use the internet to answer such questions. f=female and m=male gender."
 
         def _run(self,query: str):
             print("entered")
@@ -169,7 +168,7 @@ def query_redirecting(input :str,llm: ChatOpenAI,filenum: str):
         
     class SingleExplanationTool(BaseTool):
         name = "Single SHAP Explainability QA"
-        description = "use this tool when you need to answer the single salary prediction's SHAP explanation questions like which feature/column depends on which other feature, or what is the main feature/column. Use Shap explainability library concepts to answer the questions.Use the whole query as action input. Use absolute mean of shap values to find out feature importance."
+        description = "use this tool when you need to answer the single salary prediction's SHAP explanation questions like which feature/column depends on which other feature, or what is the main feature/column. Use Shap explainability library concepts to answer the questions.Use the whole query as action input. Use absolute mean of shap values to find out feature importance. Always work as a follow up question after a single prediction. Do not consider the queries like feature importance of nth observation. Such queries will go to ShapExplainPredictedResultTool tool"
 
         def _run(self, query: str):
             df=None
@@ -182,7 +181,7 @@ def query_redirecting(input :str,llm: ChatOpenAI,filenum: str):
         def _arun(self):
             raise NotImplementedError("This tool does not support async")
 
-    tools = [PredictedDatabaseTool(),ShapExplainPredictedResultTool(),FairlearnFairnessTool(),UnfairnessMitigationTool(),SinglePredictionTool(),SingleExplanationTool()]
+    tools = [PredictedDatasetTool(),ShapExplainPredictedResultTool(),FairlearnFairnessTool(),UnfairnessMitigationTool(),SinglePredictionTool(),SingleExplanationTool()]
     
     # initialize agent with tools
     main_agent = initialize_agent(
@@ -233,25 +232,25 @@ def get_conversation_string():
         conversation_string += "Bot: "+ st.session_state['responses'][i+1] + "\n"
     return conversation_string
 
-def database_selection_func(database_selection):
+def dataset_selection_func(dataset_selection):
     if st.button('Total Salary Predictions'):
-        #testingData=mc.run_model_generator_for_prediction(database_selection)
-        st.write("You can now ask questions related to the dataset being used,to the chatbot. Please use the keyword 'database' in your questions for better results. The columns of the dataset are Age, Gender, Experience, Education, Interview Score, Test Score, Actual Salary, PredictedSalary")
+        #testingData=mc.run_model_generator_for_prediction(dataset_selection)
+        st.write("You can now ask questions related to the dataset being used,to the chatbot. Please use the keyword 'dataset' in your questions for better results. The columns of the dataset are Age, Gender, Experience, Education, Interview Score, Test Score, Actual Salary, PredictedSalary")
 
     if st.button('Explanation of Predictions(SHAP)'):
         st.session_state['exp_select'] = '1'
-        #output=mc.run_model_generator_for_explanation(database_selection)
-        st.write("You can now ask questions related to the SHAP values of features/columns in the dataset being used,to the chatbot. Please use the keyword 'database' and 'shap values' in your questions for appropriate results. SHAP is a library for explainability. It helps explain the AI model and its predicted results and gives significant insights on the results.")
+        #output=mc.run_model_generator_for_explanation(dataset_selection)
+        st.write("You can now ask questions related to the SHAP values of features/columns in the dataset being used,to the chatbot. Please use the keyword 'dataset' and 'shap values' in your questions for appropriate results. SHAP is a library for explainability. It helps explain the AI model and its predicted results and gives significant insights on the results.")
 
     if st.button('Fairness of Predictions(Fairlearn)'):
         st.session_state['fairlearn_select'] = '1'
-        fair_output=mc.fairness_model_creation(database_selection)
+        fair_output=mc.fairness_model_creation(dataset_selection)
         st.write(fair_output)
 
     if st.button('Unfairness Mitigation'):
         st.session_state['mitigation_select'] = '1'
 
-        result_metrices=mc.run_model_generator_for_mitigation(database_selection)
+        result_metrices=mc.run_model_generator_for_mitigation(dataset_selection)
         st.write(result_metrices)
 
 def tool_context_selection(folder_name,single_folder_name):

@@ -1,0 +1,2 @@
+Age,Gender,Experience,Education,Interview Score,Test Score,predicted salary,Shap_value_of_Gender_female,Shap_value_of_Gender_male,Shap_value_of_Education_Masters,Shap_value_of_Education_PhD,Shap_value_of_Age,Shap_value_of_Experience,Shap_value_of_Interview Score,Shap_value_of_Test Score
+30,f,8,Ma,7,9,3124.1301,-234.02554899088528,-343.18993602353,-52.064317429315736,-179.9719569149915,126.0903622988734,-260.90589218285015,-31.191646821521886,45.40527395484571

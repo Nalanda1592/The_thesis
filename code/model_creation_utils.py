@@ -5,14 +5,20 @@ from sklearn.pipeline import Pipeline
 from sklearn.model_selection import train_test_split
 from fairlearn.metrics import equalized_odds_ratio,demographic_parity_ratio
 from fairlearn.adversarial import AdversarialFairnessClassifier
-from fairlearn.metrics import MetricFrame,equalized_odds_ratio,demographic_parity_ratio,selection_rate
-from sklearn.metrics import accuracy_score, mean_squared_error
+from fairlearn.metrics import MetricFrame,equalized_odds_ratio,demographic_parity_ratio,selection_rate,count
+from sklearn.metrics import precision_score,recall_score,f1_score
 from sklearn.compose import make_column_transformer, make_column_selector
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
 from numpy import number
+from imblearn.over_sampling import SMOTE
+import collections
+from sklearn.compose import ColumnTransformer
+import pickle
 
+
+pd.set_option('display.max_columns', None)
 
 
 def fairness_dataset_gender(df,rank_0,rank_1,rank_2,rank_3):
@@ -34,7 +40,7 @@ def fairness_dataset_gender(df,rank_0,rank_1,rank_2,rank_3):
     new_pred_labels=(df['PredictedSalary'] > average_gen).astype(int)
     salary_array=np.array(df['Actual Salary'],dtype='float64')
     salary_array_labels=(salary_array > average_gen).astype(int)
-    pos_label = salary_array_labels[0]
+    pos_label = salary_array_labels[-1]
     gender_array=np.array(sens_fe,dtype='str')
     print('actual salary is ', salary_array_labels[:10])
     print('predictions are ', new_pred_labels[:10])
@@ -45,7 +51,7 @@ def fairness_dataset_gender(df,rank_0,rank_1,rank_2,rank_3):
     print(f'Value of demographic parity ratio for overall dataset: {round(m_dpr, 2)}')
     print(f'Value of equal odds ratio: {round(m_eqo, 2)}')
 
-    mf = MetricFrame(metrics={"accuracy_score": accuracy_score, "selection_rate": selection_rate},y_true=salary_array_labels==pos_label,y_pred=new_pred_labels==pos_label,sensitive_features=sens_fe)
+    mf = MetricFrame(metrics={"precision_score": precision_score,"recall_score":recall_score,"f1_score":f1_score, "selection_rate": selection_rate, "count of instances":count},y_true=salary_array_labels==pos_label,y_pred=new_pred_labels==pos_label,sensitive_features=sens_fe)
 
     result_df=mf.by_group
 
@@ -143,7 +149,7 @@ def unfairness_mitigation_fairlearn(data):
     #for overall dataset
     salary_array=np.array(data["Salary"],dtype='float64')
     salary_array_labels=(salary_array > average_gen).astype(int)
-    pos_label = salary_array_labels[0]
+    pos_label = salary_array_labels[salary_array.argmax()]
     print('actual salary is ', salary_array_labels[:10])
 
     ct = make_column_transformer(
@@ -203,7 +209,8 @@ def unfairness_mitigation_fairlearn(data):
     print(f'Value of demographic parity ratio for overall dataset: {round(m_dpr, 2)}')
     m_eqo = equalized_odds_ratio(Y_test, predictions, sensitive_features=Z_test)
     print(f'Value of equalized odds ratio: {round(m_eqo, 2)}')
-    mf = MetricFrame(metrics={"mitigated accuracy_score(Adversarial Mitigation Technique)": accuracy_score, "mitigated selection_rate(Adversarial Mitigation Technique)": selection_rate},y_true=Y_test==pos_label,y_pred=predictions==pos_label,sensitive_features=Z_test)
+    {"precision_score": precision_score,"recall_score":recall_score,"f1_score":f1_score, "selection_rate": selection_rate, "count of instances":count}
+    mf = MetricFrame(metrics={"mitigated precision_score(Adversarial Mitigation Technique)": precision_score, "mitigated recall_score(Adversarial Mitigation Technique)":recall_score,"mitigated f1_score(Adversarial Mitigation Technique)":f1_score,"mitigated selection_rate(Adversarial Mitigation Technique)": selection_rate,"present count of instances":count},y_true=Y_test==pos_label,y_pred=predictions==pos_label,sensitive_features=Z_test)
 
     result_df=mf.by_group
     #result_df["mitigated demographic parity ratio"]=m_dpr
@@ -213,3 +220,116 @@ def unfairness_mitigation_fairlearn(data):
 
     
     return result_df,m_dpr,m_eqo
+
+def load_model():
+
+ 
+    folder_name="Datensatz2_results"
+
+    #current_dir = os.getcwd()
+
+    p_folder="data/total_prediction_results/"+folder_name+"/"
+
+    filename = p_folder +  'neural_model.sav'
+    with open(filename, 'rb') as f:
+        model = pickle.load(f)
+
+    return model
+
+def unfairness_mitigation_SMOTE(data):
+
+    target=['Gender']
+    predictors=['Age', 'Experience', 'Education', 'Interview Score', 'Test Score', 'Salary']
+    X=data[predictors]
+    y=data[target] 
+
+    # Encode categorical variables
+    column_transformer = ColumnTransformer(
+        transformers=[
+
+            ("hotencoder", OneHotEncoder(handle_unknown="ignore"), ["Education"])
+        ],
+        remainder="passthrough"
+    )
+
+    X_encoded = column_transformer.fit_transform(X)
+
+    # Data of Gender is converted into Binary Data
+    df_one = pd.get_dummies(y,dtype=float)
+
+    #print(df_one.head(5))
+ 
+    # We want Male =0 and Female =1 So we drop Male column here
+    df_two = df_one.drop(['Gender_m'], axis=1)
+ 
+    # Rename the Column
+    df_two = df_two.rename(columns={'Gender_f': "Gender"})
+    y_modified=df_two["Gender"]
+   
+    sme = SMOTE(random_state=42)
+    X_res, y_res = sme.fit_resample(X_encoded, y_modified)
+
+    result=collections.Counter(y_res)
+    #print("after resampling: ",result)
+
+    y_res_df=pd.DataFrame(y_res, columns=['Gender'])
+
+    new_feature_column_names=['Education_Masters', 'Education_PhD', 'Age', 'Experience', 'Interview Score', 'Test Score', 'Salary']
+    X_res_df=pd.DataFrame(X_res, columns=new_feature_column_names)
+
+    new_y_df=pd.get_dummies(y_res_df['Gender'],dtype=float)
+    #print(new_y_df.head(5))
+
+    new_y_df.columns=['Gender_Male', 'Gender_Female']
+    #print(new_y_df.head(5))
+
+    resultant_df = pd.concat((new_y_df, X_res_df), axis=1)
+    #print(resultant_df.head(5))
+
+    new_predictors=['Gender_Male','Gender_Female','Education_Masters', 'Education_PhD', 'Age', 'Experience', 'Interview Score', 'Test Score']
+    new_target=['Salary']
+
+    X_final=resultant_df[new_predictors]
+    y_final=resultant_df[new_target]
+
+    mapping = {0.0: 'm', 1.0: 'f'}
+    for_gender_df=resultant_df.replace({'Gender_Female': mapping})
+    for_gender_df=for_gender_df.rename(columns={'Gender_Female': "Gender"})
+
+    X_train, X_test, y_train, y_test, gender_train, gender_test = train_test_split(X_final, y_final, for_gender_df, test_size=0.3, random_state=42)
+
+    model = load_model()
+
+    model.fit(X_train, y_train ,batch_size = 20, epochs = 50, verbose=1)
+    predictions=model.predict(X_test)
+
+    testingData=pd.DataFrame(data=X_test, columns=predictors)
+    testingData['Actual Salary']=y_test
+    testingData['PredictedSalary']=predictions
+    testingData = testingData.reset_index(drop=True)
+
+    sens_fe=gender_test['Gender']
+    average_gen=testingData['PredictedSalary'].mean()
+
+     #for overall dataset
+    new_pred_labels=(testingData['PredictedSalary'] > average_gen).astype(int)
+    salary_array=np.array(testingData['Actual Salary'],dtype='float64')
+    salary_array_labels=(salary_array > average_gen).astype(int)
+    pos_label = salary_array_labels[salary_array.argmax()]
+    gender_array=np.array(sens_fe,dtype='str')
+    #print('actual salaries are ', salary_array_labels[:10])
+    #print('predictions are ', new_pred_labels[:10])
+    #print('sensitive features are ', gender_array[:10])
+
+    m_dpr = demographic_parity_ratio(salary_array_labels, new_pred_labels, sensitive_features=gender_array)
+    m_eqo = equalized_odds_ratio(salary_array_labels, new_pred_labels, sensitive_features=gender_array)
+    print(f'Value of demographic parity ratio for overall dataset: {round(m_dpr, 2)}')
+    print(f'Value of equal odds ratio: {round(m_eqo, 2)}')
+
+    mf = MetricFrame(metrics={"precision_score": precision_score,"recall_score":recall_score,"f1_score":f1_score, "selection_rate": selection_rate, "count of instances":count},y_true=salary_array_labels==pos_label,y_pred=new_pred_labels==pos_label,sensitive_features=sens_fe)
+
+    result_df=mf.by_group
+
+    print(result_df)
+
+

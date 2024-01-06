@@ -2,11 +2,9 @@ import streamlit as st
 from streamlit_chat import message
 import dotenv
 import os
-import model_creation as mc
 from langchain.chat_models import ChatOpenAI
 from visualization_utils import *
 from langchain.memory import ConversationBufferWindowMemory
-from trubrics import Trubrics
 from langchain.callbacks import TrubricsCallbackHandler
 import uuid
 from trubrics.integrations.streamlit import FeedbackCollector
@@ -40,18 +38,22 @@ def main():
 
 
     with st.sidebar:
-        database_selection=st.radio(label='Choose the type of dataset you want to use',options=('Gender Bias','Uneven Gender Distribution'))  
+        dataset_selection=st.radio(label='Choose the type of dataset you want to use',options=('Gender Bias','Uneven Gender Distribution'))  
 
-        if database_selection=='Gender Bias':
-            database_selection='1'
+        if dataset_selection=='Gender Bias':
+            dataset_selection='1'
             file_num='1'
-            database_selection_func(database_selection)
+            dataset_selection_func(dataset_selection)
             
 
-        elif database_selection=='Uneven Gender Distribution':
-            database_selection='2'
+        elif dataset_selection=='Uneven Gender Distribution':
+            dataset_selection='2'
             file_num='2'
-            database_selection_func(database_selection)
+            dataset_selection_func(dataset_selection)
+
+        st.header('How To : ', divider='rainbow')
+        st.caption('Steps to predict salary and get Shap value interpretation for the prediction for a single person: ')
+        st.markdown('1. Ask in the chatbox "How to predict salary?", \\2. Use this question or something similar to get the SHAP explanation : \\"what are the most important features for a single prediction according to shap values?" . \\Use keywords "single prediction","shap"')
 
     if 'responses' not in st.session_state:
         st.session_state['responses'] = ["How can I assist you?"]

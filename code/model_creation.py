@@ -278,13 +278,13 @@ def run_model_generator_for_mitigation(file_num):
     main_df["Equalized Odds Ratio after Adversarial Mitigation Technique"]=m_eqo
 
     #selec_accu=pd.concat([result.set_index('Gender'),side_df.set_index('Gender')], axis=1, join='inner')
-    selec_accu=result.join(side_df)
+    other_metrics=result.join(side_df)
 
     filename='unfairness_mitigation_result_1.csv'
-    selec_accu.to_csv(Path(p+filename), index=False)
+    other_metrics.to_csv(Path(p+filename), index=True)
 
     filename='unfairness_mitigation_result_2.csv'
     main_df.to_csv(Path(p+filename), index=False)
     
-    return selec_accu
+    return other_metrics
         
