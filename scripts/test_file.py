@@ -1,7 +1,6 @@
 import numpy as np
 import pandas as pd
 import os
-import model_creation_utils as mu
 
 current_dir = os.getcwd()
 parent_dir = os.path.abspath(os.path.join(current_dir, os.pardir))
@@ -44,6 +43,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-    

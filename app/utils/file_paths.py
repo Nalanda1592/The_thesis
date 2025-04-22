@@ -1,0 +1,1 @@
+from app.utils.config import *  # centralized in config.py
